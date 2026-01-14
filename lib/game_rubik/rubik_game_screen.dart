@@ -8,7 +8,7 @@ import 'package:vector_math/vector_math_64.dart' as v;
 import 'package:cuber/cuber.dart' as logic;
 // Import Service
 import 'leaderboard_item.dart';
-import 'rubik_service.dart';
+import '../services/rubik_service.dart';
 import 'dart:ui';
 // --- DATA MODEL ---
 enum Face { up, down, left, right, front, back }

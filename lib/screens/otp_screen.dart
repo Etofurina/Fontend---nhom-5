@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import 'game_menu_screen.dart';
-
+import 'admin_dashboard_screen.dart';
 class OtpScreen extends StatefulWidget {
   final String email;
 
@@ -63,31 +63,46 @@ class _OtpScreenState extends State<OtpScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() => _isLoading = false);
 
-    // Gọi API Step 2
-    final token = await _apiService.loginStep2(
+    // Gọi API Step 2 (Lúc này nhận về Map chứ không phải String)
+    final response = await _apiService.loginStep2(
         widget.email,
         _otpController.text
     );
 
     setState(() => _isLoading = false);
 
-    if (token != null) {
-      // Lưu token
+    if (response != null) {
+      // DEBUG: In ra xem lấy được chưa
+      print("Response tại màn hình: $response");
+
+      // Chú ý: Key ở đây phải giống hệt key anh viết trong Backend ở Bước 1
+      String token = response['token'];
+      String role = response['role'];
+
+      // 2. Lưu vào máy
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', token);
+      await prefs.setString('role', role); // Lưu role chuẩn
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Đăng nhập thành công!"), backgroundColor: Colors.green),
+        SnackBar(content: Text("Đăng nhập thành công! Quyền: $role"), backgroundColor: Colors.green),
       );
 
-      // Chuyển vào sảnh game, xóa hết history cũ
+      // 3. Điều hướng dựa trên Role thật
+      Widget nextScreen;
+      if (role == 'Admin') {
+        nextScreen = AdminDashboardScreen();
+      } else {
+        nextScreen = GameMenuScreen();
+      }
+
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => GameMenuScreen()),
+        MaterialPageRoute(builder: (_) => nextScreen),
             (route) => false,
       );
     } else {

@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../constants.dart';
+
 class SudokuService {
   // ⚠️ LƯU Ý: Nếu URL Conveyor thay đổi, hãy cập nhật dòng này
-  static const String _baseUrl = 'https://greatpurpleshop22.conveyor.cloud/api';
-
+  static const String _baseUrl = AppConstants.apiBaseUrl;
   // --- 1. CÁC HÀM HỖ TRỢ (PRIVATE) ---
 
   // Lấy Token đã lưu trong máy
