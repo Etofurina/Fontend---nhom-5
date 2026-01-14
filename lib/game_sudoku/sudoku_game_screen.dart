@@ -1,5 +1,6 @@
+// File: lib/game_sudoku/sudoku_game_screen.dart
 import 'package:flutter/material.dart';
-import '../services/sudoku_service.dart';
+import 'sudoku_service.dart'; // [QUAN TRỌNG] Đã sửa dòng này (bỏ ../services/)
 import 'dart:async';
 
 class SudokuGameScreen extends StatefulWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/sudoku_service.dart';
-import 'private_chat_screen.dart'; // Import màn hình chat riêng
+import 'sudoku_service.dart';
+import '../screens/private_chat_screen.dart'; // Import màn hình chat riêng
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({Key? key}) : super(key: key);

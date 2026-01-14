@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/sudoku_service.dart';
+import 'sudoku_service.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({Key? key}) : super(key: key);
