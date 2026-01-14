@@ -246,4 +246,50 @@ class ApiService {
       return false;
     }
   }
+  // --- CARO API ---
+  Future<bool> finishCaro(int result, int moves, double duration, String mode) async {
+    try {
+      final headers = await _getAuthHeaders(); // Hàm lấy header có token
+      final response = await http.post(
+        Uri.parse('$baseUrl/Caro/finish'),
+        headers: headers,
+        body: jsonEncode({
+          'result': result,
+          'moves': moves,
+          'duration': duration,
+          'mode': mode
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+  // 16. Lấy lịch sử đấu Caro
+  Future<List<dynamic>> getCaroHistory() async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await http.get(Uri.parse('$baseUrl/Caro/history'), headers: headers);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (e) {
+      print("Lỗi get caro history: $e");
+    }
+    return [];
+  }
+
+  // 17. Lấy bảng xếp hạng Caro
+  Future<List<dynamic>> getCaroLeaderboard() async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await http.get(Uri.parse('$baseUrl/Caro/leaderboard'), headers: headers);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (e) {
+      print("Lỗi get caro leaderboard: $e");
+    }
+    return [];
+  }
 }
