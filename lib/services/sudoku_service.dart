@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SudokuService {
   // ⚠️ LƯU Ý: Nếu URL Conveyor thay đổi, hãy cập nhật dòng này
-  static const String _baseUrl = 'https://funsagehen53.conveyor.cloud/api';
+  static const String _baseUrl = 'https://greatpurpleshop22.conveyor.cloud/api';
 
   // --- 1. CÁC HÀM HỖ TRỢ (PRIVATE) ---
 

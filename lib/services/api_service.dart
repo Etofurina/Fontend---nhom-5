@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart'; // [Cần thêm th�
 
 class ApiService {
   // --- [TỐI ƯU] Gom URL về 1 biến để dễ sửa ---
-  static const String baseUrl = "https://earlygreenpencil99.conveyor.cloud/api";
+  static const String baseUrl = "https://greatpurpleshop22.conveyor.cloud/api";
 
   // 1. Đăng ký
   Future<bool> register(String email, String password, String fullName) async {

@@ -11,7 +11,7 @@ class ChatService {
   // LƯU Ý QUAN TRỌNG:
   // 1. URL của Conveyor (conveyor.cloud) thường thay đổi nếu bạn tắt mở lại Visual Studio.
   // 2. Hãy thử paste link này vào trình duyệt điện thoại trước. Nếu thấy trang web Conveyor, hãy bấm "Continue" để bỏ qua cảnh báo SSL.
-  static const String _hubUrl = 'https://funsagehen53.conveyor.cloud/chatHub';
+  static const String _hubUrl = 'https://greatpurpleshop22.conveyor.cloud/chatHub';
 
   HubConnection? _hubConnection;
 
