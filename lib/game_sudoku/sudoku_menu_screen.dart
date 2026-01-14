@@ -1,7 +1,7 @@
 // File: lib/game_sudoku/sudoku_menu_screen.dart
 import 'package:flutter/material.dart';
 import 'sudoku_game_screen.dart'; // Import màn hình game (đã có trong cùng thư mục)
-import 'sudoku_service.dart';     // Import service (đã có trong cùng thư mục)
+import '../services/sudoku_service.dart';     // Import service (đã có trong cùng thư mục)
 import 'leaderboard_screen.dart'; // Import BXH (đã có trong cùng thư mục)
 import 'history_screen.dart';     // Import Lịch sử (đã có trong cùng thư mục)
 
