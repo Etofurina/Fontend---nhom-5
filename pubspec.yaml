@@ -1,0 +1,51 @@
+name: loginpage
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.4
+
+# --- [QUAN TRỌNG] Đặt thư viện ở đây (dependencies) ---
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+
+
+  http: ^1.6.0
+
+  shared_preferences: ^2.2.2
+  signalr_netcore: ^1.4.4
+  google_fonts: ^6.2.1
+  confetti: ^0.7.0
+  vector_math: ^2.1.4
+  cuber: ^0.4.0  # [NEW] Thư viện logic Rubik & Solver
+  shimmer: ^3.0.0
+
+
+
+# -----------------------------------------------------
+
+# --- [KHÔNG ĐỂ Ở DƯỚI NÀY] ---
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/Hinh Bo.jpg
+    - assets/Hinh Bo Sua.jpg
+    - assets/Hinh Ca.jpg
+    - assets/Hinh Capy.jpg
+    - assets/Hinh Chim.jpg
+    - assets/Hinh Cho.jpg
+    - assets/Hinh Ga.jpg
+    - assets/Hinh Meo.jpg
+    - assets/Hinh Trau.jpg
+    - assets/Hinh Vit.jpg
