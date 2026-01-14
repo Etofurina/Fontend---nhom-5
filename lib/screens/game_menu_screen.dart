@@ -1,30 +1,57 @@
+// File: lib/screens/game_menu_screen.dart
 import 'package:flutter/material.dart';
-import 'package:loginpage/game_rubik/rubik_game_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Import các màn hình liên quan
+// --- IMPORT CÁC MÀN HÌNH ---
 import 'login_screen.dart';
-import 'sudoku_game_screen.dart';
-import 'leaderboard_screen.dart';
-import 'history_screen.dart';
 import 'WorldChatScreen.dart';
-import '../services/sudoku_service.dart';
-import '../sliding_puzzle/image_selection_screen.dart'; // Import màn hình xếp hình
-import '../game_rubik/rubik_game_screen.dart';
-class GameMenuScreen extends StatelessWidget {
-  final SudokuService _sudokuService = SudokuService();
 
-  // Danh sách game
+// Game 1: Xếp Hình
+import '../sliding_puzzle/image_selection_screen.dart';
+// Game 2: Rubik
+import '../game_rubik/rubik_game_screen.dart';
+// Game 3: Sudoku (Menu mới)
+import '../game_sudoku/sudoku_menu_screen.dart';
+// Game 4: Caro (Menu mới)
+//import '../game_caro/caro_menu_screen.dart';
+
+class GameMenuScreen extends StatelessWidget {
+
+  // Danh sách game (Cập nhật trạng thái isReady)
   final List<Map<String, dynamic>> games = [
-    {'name': 'Sudoku', 'icon': Icons.grid_on_rounded, 'color': Colors.blueAccent, 'isReady': true, 'desc': 'Thử thách trí tuệ'},
-    {'name': 'Cờ Caro', 'icon': Icons.close_rounded, 'color': Colors.orangeAccent, 'isReady': false, 'desc': 'Chiến thuật cổ điển'},
-    {'name': 'Rubik 3D', 'icon': Icons.casino_rounded, 'color': Colors.redAccent, 'isReady': true, 'desc': 'Không gian 3 chiều'},
-    {'name': 'Xếp Hình', 'icon': Icons.view_quilt_rounded, 'color': Colors.purpleAccent, 'isReady': true, 'desc': 'Ghép hình kinh điển'},
+    {
+      'name': 'Sudoku',
+      'icon': Icons.grid_on_rounded,
+      'color': Colors.blueAccent,
+      'isReady': true,
+      'desc': 'Thử thách trí tuệ'
+    },
+    {
+      'name': 'Cờ Caro',
+      'icon': Icons.close_rounded,
+      'color': Colors.orangeAccent,
+      'isReady': true, // Đã xong
+      'desc': 'Chiến thuật cổ điển'
+    },
+    {
+      'name': 'Rubik 3D',
+      'icon': Icons.casino_rounded,
+      'color': Colors.redAccent,
+      'isReady': true,
+      'desc': 'Không gian 3 chiều'
+    },
+    {
+      'name': 'Xếp Hình',
+      'icon': Icons.view_quilt_rounded,
+      'color': Colors.purpleAccent,
+      'isReady': true,
+      'desc': 'Ghép hình kinh điển'
+    },
   ];
 
   GameMenuScreen({super.key});
 
-  // --- CÁC HÀM ĐIỀU HƯỚNG ---
+  // --- CÁC HÀM HỆ THỐNG ---
 
   void _handleLogout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
@@ -37,112 +64,8 @@ class GameMenuScreen extends StatelessWidget {
     );
   }
 
-  void _openHistory(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen()));
-  }
-
-  void _openLeaderboard(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => LeaderboardScreen()));
-  }
-
   void _openWorldChat(BuildContext context) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => WorldChatScreen()));
-  }
-
-  // --- LOGIC GAME SUDOKU (Giữ nguyên không đụng vào) ---
-
-  void _showDifficultyDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text("Chọn Độ Khó", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 20),
-              _buildDifficultyButton(context, "Dễ", "1000 điểm", Colors.green, 1),
-              const SizedBox(height: 10),
-              _buildDifficultyButton(context, "Trung Bình", "2000 điểm", Colors.orange, 2),
-              const SizedBox(height: 10),
-              _buildDifficultyButton(context, "Khó", "3000 điểm", Colors.red, 3),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDifficultyButton(BuildContext context, String label, String subLabel, Color color, int level) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color.withOpacity(0.1),
-          foregroundColor: color,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: color)),
-        ),
-        onPressed: () {
-          Navigator.pop(context); // Đóng dialog
-          _startNewSudokuGame(context, level);
-        },
-        child: Column(
-          children: [
-            Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text(subLabel, style: const TextStyle(fontSize: 12)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _startNewSudokuGame(BuildContext context, int difficulty) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      final result = await _sudokuService.startGame(difficulty);
-
-      if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-      }
-
-      final matchId = result['gameId'] ?? result['GameId'];
-      final initialBoard = result['board'] ?? result['Board'];
-
-      if (matchId != null && initialBoard != null) {
-        if (!context.mounted) return;
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => SudokuGameScreen(
-              matchId: matchId,
-              initialBoard: initialBoard,
-              difficulty: difficulty,
-            ),
-          ),
-        );
-      } else {
-        _showError(context, "Lỗi dữ liệu game!");
-      }
-    } catch (e) {
-      if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        _showError(context, "Lỗi: ${e.toString().replaceAll('Exception:', '')}");
-      }
-    }
-  }
-
-  void _showError(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: Colors.red)
-    );
   }
 
   // --- GIAO DIỆN CHÍNH ---
@@ -154,13 +77,16 @@ class GameMenuScreen extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
-        title: const Text("Game Zone", style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+        title: const Text("Game Hub", style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
         actions: [
-          _buildActionButton(Icons.public, "Chat", () => _openWorldChat(context), Colors.blue),
-          _buildActionButton(Icons.emoji_events, "BXH", () => _openLeaderboard(context), Colors.orange),
-          _buildActionButton(Icons.history, "Lịch sử", () => _openHistory(context), Colors.purple),
+          IconButton(
+              icon: const Icon(Icons.public, color: Colors.blue),
+              tooltip: "Chat Thế Giới",
+              onPressed: () => _openWorldChat(context)
+          ),
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+            tooltip: "Đăng xuất",
             onPressed: () => _handleLogout(context),
           )
         ],
@@ -191,34 +117,33 @@ class GameMenuScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(IconData icon, String tooltip, VoidCallback onTap, Color color) {
-    return IconButton(icon: Icon(icon, color: color), tooltip: tooltip, onPressed: onTap);
-  }
-
   Widget _buildGameCard(BuildContext context, Map<String, dynamic> game) {
     final bool isReady = game['isReady'];
     final Color color = isReady ? (game['color'] as Color) : Colors.grey;
 
     return GestureDetector(
       onTap: () {
-        if (game['name'] == 'Sudoku') {
-          _showDifficultyDialog(context);
-        } else if (game['name'] == 'Xếp Hình') {
-          // Điều hướng sang màn hình xếp hình
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ImageSelectionScreen()),
-          );
-        }
-        else if (game['name'] == 'Rubik 3D') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const RubikGameScreen()),
-          );
-        }else {
+        if (!isReady) {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("Game ${game['name']} đang phát triển!"), behavior: SnackBarBehavior.floating)
           );
+          return;
+        }
+
+        // --- ĐIỀU HƯỚNG GAME ---
+        if (game['name'] == 'Sudoku') {
+          // Mở Menu riêng của Sudoku
+          Navigator.push(context, MaterialPageRoute(builder: (_) => SudokuMenuScreen()));
+        }
+        else if (game['name'] == 'Cờ Caro') {
+          // Mở Menu riêng của Caro
+         // Navigator.push(context, MaterialPageRoute(builder: (_) => const CaroMenuScreen()));
+        }
+        else if (game['name'] == 'Xếp Hình') {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const ImageSelectionScreen()));
+        }
+        else if (game['name'] == 'Rubik 3D') {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const RubikGameScreen()));
         }
       },
       child: Container(
