@@ -282,15 +282,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // --- TAB 3: RUBIK ---
+  // --- TAB 3: QUẢN LÝ RUBIK (Đã chỉnh sửa khớp API C#) ---
   Widget _buildRubikTab() {
     return RefreshIndicator(
       onRefresh: _refreshData,
       child: FutureBuilder<List<dynamic>>(
         future: _apiService.getAllRubikGames(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
-          if (!snapshot.hasData || snapshot.data!.isEmpty) return ListView(children: [Center(child: Padding(padding: EdgeInsets.all(20), child: Text("Chưa có ván Rubik nào.")))]);
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return ListView(children: [Center(child: Padding(padding: EdgeInsets.all(20), child: Text("Chưa có ván Rubik nào.")))]);
+          }
 
           final games = snapshot.data!;
           return ListView.builder(
@@ -298,19 +302,47 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             itemCount: games.length,
             itemBuilder: (context, index) {
               final game = games[index];
+
+              // --- [QUAN TRỌNG] MAP DỮ LIỆU TỪ C# ---
+              // Backend trả về: UserEmail, Duration, Mode, Date (Viết hoa chữ đầu)
+              // Ta dùng cú pháp ?? để dự phòng nếu backend trả về chữ thường
+              final String email = game['UserEmail'] ?? game['userEmail'] ?? "Unknown";
+              final String mode = game['Mode'] ?? game['mode'] ?? "Thường";
+              final String date = game['Date'] ?? game['date'] ?? "";
+
+              // Duration có thể là int hoặc double
+              final duration = game['Duration'] ?? game['duration'] ?? 0;
+
               return Card(
                 margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 child: ListTile(
-                  leading: Icon(Icons.casino, color: Colors.purple),
-                  title: Text(game['userEmail'] ?? "Unknown"),
-                  subtitle: Text("Thời gian: ${game['time']}s | ${game['mode']}\n${game['date']}"),
+                  // Icon màu Tím đặc trưng cho Rubik
+                  leading: Icon(Icons.casino, color: Colors.purple, size: 30),
+
+                  title: Text(email, style: TextStyle(fontWeight: FontWeight.bold)),
+
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Thời gian: ${duration}s"),
+                      Text("Chế độ: $mode"),
+                      Text(date, style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    ],
+                  ),
+
                   isThreeLine: true,
+
                   trailing: IconButton(
                     icon: Icon(Icons.delete_outline, color: Colors.redAccent),
-                    onPressed: () => _confirmDelete("Xóa ván game?", "Bạn muốn xóa ván này?", () async {
-                      bool success = await _apiService.deleteRubikGame(game['id']);
-                      if (success) _refreshData();
-                    }),
+                    onPressed: () => _confirmDelete(
+                      "Xóa ván Rubik?",
+                      "Hành động này không thể hoàn tác!",
+                          () async {
+                        // Gọi API xóa (Id lấy từ game['Id'])
+                        bool success = await _apiService.deleteRubikGame(game['Id'] ?? game['id']);
+                        if (success) _refreshData();
+                      },
+                    ),
                   ),
                 ),
               );

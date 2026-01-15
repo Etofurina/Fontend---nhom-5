@@ -185,16 +185,21 @@ class ApiService {
     }
   }
 
-  // 5. Lấy lịch sử Rubik
+  // 12. [ADMIN] Lấy toàn bộ lịch sử Rubik (Sửa theo API mới)
   Future<List<dynamic>> getAllRubikGames() async {
     try {
       final headers = await _getAuthHeaders();
+      // Dựa vào code C# anh gửi: [HttpGet("rubik-games")]
+      // Em giả định nó nằm trong AdminController
       final response = await http.get(Uri.parse('$baseUrl/Admin/rubik-games'), headers: headers);
-      if (response.statusCode == 200) return jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
     } catch (e) {
-      print("Lỗi get rubik: $e");
+      print("Lỗi get all rubik: $e");
     }
-    return [];
+    return []; // Trả về list rỗng nếu lỗi
   }
 
   // 6. Xóa ván Rubik

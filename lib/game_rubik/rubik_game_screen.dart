@@ -69,7 +69,20 @@ class _RubikGameScreenState extends State<RubikGameScreen>
   final TextEditingController _codeController = TextEditingController();
   late AnimationController _confettiController;
 
+// Các hàm giúp đọc dữ liệu an toàn, bất chấp API trả về chữ Hoa/Thường
+  int _safeInt(dynamic val) {
+    if (val == null) return 0;
+    return int.tryParse(val.toString()) ?? 0;
+  }
 
+  double _safeDouble(dynamic val) {
+    if (val == null) return 0.0;
+    return double.tryParse(val.toString()) ?? 0.0;
+  }
+
+  String _safeString(dynamic val) {
+    return val?.toString() ?? "";
+  }
   @override
   void initState() {
     super.initState();
@@ -298,61 +311,60 @@ class _RubikGameScreenState extends State<RubikGameScreen>
     );
   }
 
-  // --- LỊCH SỬ ĐẤU ---
+  // Trong rubik_game_screen.dart
+
   void _showHistoryDialog() async {
     if (_isPlaying) return;
+
     showDialog(
         context: context,
-        builder: (ctx) => const Center(child: CircularProgressIndicator()));
+        barrierDismissible: false,
+        builder: (ctx) => const Center(child: CircularProgressIndicator(color: Colors.purpleAccent)));
+
     List<dynamic>? history = await _api.getHistory();
+
     if (mounted) Navigator.pop(context);
 
     if (history != null && mounted) {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: Colors.grey[900],
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: const Text("LỊCH SỬ ĐẤU",
-              style:
-              TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          backgroundColor: const Color(0xFF1E1E1E),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Row(
+            children: [
+              Icon(Icons.history, color: Colors.purpleAccent),
+              SizedBox(width: 10),
+              Text("LỊCH SỬ ĐẤU", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
           content: SizedBox(
             width: double.maxFinite,
             height: 400,
             child: history.isEmpty
-                ? const Center(
-                child: Text("Chưa có dữ liệu",
-                    style: TextStyle(color: Colors.white54)))
+                ? const Center(child: Text("Bạn chưa chơi ván nào", style: TextStyle(color: Colors.white54)))
                 : ListView.builder(
               itemCount: history.length,
               itemBuilder: (context, index) {
                 final item = history[index];
-                final int difficulty = item['difficulty'] ?? 1;
-                final int score = item['score'] ?? 0;
-                final int time = item['time'] ?? 0;
-                final String mode = item['mode'] ?? "Thường";
-                final String result = item['result'] ?? "---";
 
-                String diffText = "Dễ";
-                Color diffColor = Colors.green;
-                if (difficulty == 2) {
-                  diffText = "Vừa";
-                  diffColor = Colors.orange;
-                }
-                if (difficulty == 3) {
-                  diffText = "Khó";
-                  diffColor = Colors.red;
-                }
+                // [FIX] Map đúng key chữ thường như trong Swagger
+                final int difficulty = _safeInt(item['difficulty']);
+                final double duration = _safeDouble(item['duration']);
+                final String mode = _safeString(item['mode']);
+                final String date = _safeString(item['date']);
+
+                // Màu sắc
+                Color diffColor = difficulty == 3 ? Colors.redAccent : (difficulty == 2 ? Colors.orangeAccent : Colors.greenAccent);
+                String diffText = difficulty == 3 ? "Khó" : (difficulty == 2 ? "Vừa" : "Dễ");
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white10,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border(
-                        left: BorderSide(color: diffColor, width: 4)),
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border(left: BorderSide(color: diffColor, width: 4)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -360,40 +372,16 @@ class _RubikGameScreenState extends State<RubikGameScreen>
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(children: [
-                            Text(mode,
-                                style: const TextStyle(
-                                    color: Colors.cyanAccent,
-                                    fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 8),
-                            Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                    color: diffColor.withOpacity(0.2),
-                                    borderRadius:
-                                    BorderRadius.circular(4)),
-                                child: Text(diffText,
-                                    style: TextStyle(
-                                        color: diffColor, fontSize: 10)))
-                          ]),
+                          Text(mode, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 4),
-                          Text("Kết quả: $result",
-                              style: const TextStyle(
-                                  color: Colors.white70, fontSize: 12)),
+                          Text(date, style: const TextStyle(color: Colors.white38, fontSize: 11)),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text("$score điểm",
-                              style: const TextStyle(
-                                  color: Colors.amber,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16)),
-                          Text("${time}s",
-                              style: const TextStyle(
-                                  color: Colors.white54, fontSize: 12))
+                          Text("${duration.toStringAsFixed(2)}s", style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text(diffText, style: TextStyle(color: diffColor, fontSize: 10)),
                         ],
                       )
                     ],
@@ -403,15 +391,10 @@ class _RubikGameScreenState extends State<RubikGameScreen>
             ),
           ),
           actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text("Đóng", style: TextStyle(color: Colors.white)))
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Đóng", style: TextStyle(color: Colors.white54)))
           ],
         ),
       );
-    } else if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Lỗi tải lịch sử!")));
     }
   }
 
