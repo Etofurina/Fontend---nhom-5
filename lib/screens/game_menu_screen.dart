@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // --- IMPORT CÁC MÀN HÌNH ---
-import '../game_caro/CaroScreen.dart';
-import '../game_caro/caro_menu_screen.dart';
 import '../game_sudoku/WorldChatScreen.dart';
 import 'login_screen.dart';
 
@@ -17,8 +15,7 @@ import '../game_rubik/rubik_game_screen.dart';
 import '../game_sudoku/sudoku_menu_screen.dart';
 
 // Game 4: Caro
-import '../game_caro/CaroScreen.dart';
-import '../game_caro/caro_logic.dart';
+import '../game_caro/caro_screen.dart';
 
 class GameMenuScreen extends StatelessWidget {
   GameMenuScreen({super.key});
@@ -170,7 +167,7 @@ class GameMenuScreen extends StatelessWidget {
           case 'Cờ Caro':
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) =>  CaroMenuScreen()),
+              MaterialPageRoute(builder: (_) =>  CaroScreen()),
             );
             break;
 

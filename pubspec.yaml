@@ -19,12 +19,13 @@ dependencies:
 
   shared_preferences: ^2.2.2
   signalr_netcore: ^1.4.4
-  google_fonts: ^6.2.1
+  google_fonts: ^7.0.2
   confetti: ^0.7.0
   vector_math: ^2.1.4
   cuber: ^0.4.0  # [NEW] Thư viện logic Rubik & Solver
   shimmer: ^3.0.0
-
+  animate_do: ^4.2.0
+  intl: ^0.18.0
 
 
 # -----------------------------------------------------
