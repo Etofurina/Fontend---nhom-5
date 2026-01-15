@@ -22,10 +22,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // 2. Hàm Reload dữ liệu (Chỉ cần setState để FutureBuilder chạy lại)
+  // 2. Hàm Reload dữ liệu
   Future<void> _refreshData() async {
     setState(() {});
-    // Giả lập chờ 1 xíu cho người dùng thấy hiệu ứng loading
     await Future.delayed(Duration(milliseconds: 500));
   }
 
@@ -131,7 +130,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
                   Navigator.pop(ctx);
                   if (success) {
-                    _refreshData(); // Reload lại danh sách sau khi lưu
+                    _refreshData();
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Thành công!"), backgroundColor: Colors.green));
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Có lỗi xảy ra!"), backgroundColor: Colors.red));
@@ -148,7 +147,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 4, // [SỬA] Tăng lên 4 Tab
       child: Scaffold(
         appBar: AppBar(
           title: Text("Admin Dashboard"),
@@ -157,13 +156,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           iconTheme: IconThemeData(color: Colors.black),
           titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
           actions: [
-            // --- [MỚI] NÚT RELOAD DỮ LIỆU ---
             IconButton(
               icon: Icon(Icons.refresh, color: Colors.blueAccent),
               tooltip: "Làm mới dữ liệu",
               onPressed: _refreshData,
             ),
-            // ---------------------------------
             IconButton(
               icon: Icon(Icons.logout, color: Colors.redAccent),
               tooltip: "Đăng xuất",
@@ -174,10 +171,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             labelColor: Colors.blueAccent,
             unselectedLabelColor: Colors.grey,
             indicatorColor: Colors.blueAccent,
+            isScrollable: true, // [NÊN DÙNG] Cho phép cuộn ngang nếu màn hình nhỏ
             tabs: [
               Tab(icon: Icon(Icons.people), text: "Users"),
               Tab(icon: Icon(Icons.grid_on), text: "Sudoku"),
               Tab(icon: Icon(Icons.casino), text: "Rubik"),
+              Tab(icon: Icon(Icons.grid_4x4), text: "Caro"), // [MỚI] Tab Caro
             ],
           ),
         ),
@@ -186,13 +185,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             _buildUserTab(),
             _buildSudokuTab(),
             _buildRubikTab(),
+            _buildCaroTab(), // [MỚI] Hàm dựng giao diện Caro
           ],
         ),
       ),
     );
   }
 
-  // --- TAB 1: QUẢN LÝ USER ---
+  // --- TAB 1: USER ---
   Widget _buildUserTab() {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -200,18 +200,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         child: Icon(Icons.add, color: Colors.white),
         onPressed: () => _showUserDialog(),
       ),
-      body: RefreshIndicator( // [MỚI] Vuốt xuống để refresh
+      body: RefreshIndicator(
         onRefresh: _refreshData,
         child: FutureBuilder<List<dynamic>>(
           future: _apiService.getAllUsers(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            }
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              // Phải bọc trong ListView để RefreshIndicator hoạt động được khi rỗng
-              return ListView(children: [Center(child: Padding(padding: EdgeInsets.all(20), child: Text("Chưa có người dùng nào.")))]);
-            }
+            if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
+            if (!snapshot.hasData || snapshot.data!.isEmpty) return ListView(children: [Center(child: Padding(padding: EdgeInsets.all(20), child: Text("Chưa có người dùng nào.")))]);
 
             final users = snapshot.data!;
             return ListView.builder(
@@ -221,52 +216,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 final user = users[index];
                 return Card(
                   margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  elevation: 2,
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: user['role'] == 'Admin' ? Colors.redAccent : Colors.blueAccent,
-                      child: Text(user['fullName'] != null && user['fullName'].isNotEmpty
-                          ? user['fullName'][0].toUpperCase()
-                          : "U", style: TextStyle(color: Colors.white)),
+                      child: Text(user['fullName'] != null && user['fullName'].isNotEmpty ? user['fullName'][0].toUpperCase() : "U", style: TextStyle(color: Colors.white)),
                     ),
                     title: Text(user['fullName'] ?? "No Name", style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("${user['email']}"),
-                        Container(
-                          margin: EdgeInsets.only(top: 4),
-                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: user['role'] == 'Admin' ? Colors.red[50] : Colors.blue[50],
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: user['role'] == 'Admin' ? Colors.red : Colors.blue, width: 0.5),
-                          ),
-                          child: Text(
-                              user['role'],
-                              style: TextStyle(fontSize: 10, color: user['role'] == 'Admin' ? Colors.red : Colors.blue, fontWeight: FontWeight.bold)
-                          ),
-                        ),
-                      ],
-                    ),
+                    subtitle: Text("${user['email']} • ${user['role']}"),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(
-                          icon: Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _showUserDialog(user: user),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _confirmDelete(
-                            "Xóa User?",
-                            "Hành động này sẽ xóa User '${user['email']}'!",
-                                () async {
-                              bool success = await _apiService.deleteUser(user['id']);
-                              if (success) _refreshData(); // Reload sau khi xóa
-                            },
-                          ),
-                        ),
+                        IconButton(icon: Icon(Icons.edit, color: Colors.blue), onPressed: () => _showUserDialog(user: user)),
+                        IconButton(icon: Icon(Icons.delete, color: Colors.red), onPressed: () => _confirmDelete("Xóa User?", "Xóa vĩnh viễn user này?", () async {
+                          bool success = await _apiService.deleteUser(user['id']);
+                          if (success) _refreshData();
+                        })),
                       ],
                     ),
                   ),
@@ -279,41 +243,35 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // --- TAB 2: QUẢN LÝ SUDOKU ---
+  // --- TAB 2: SUDOKU ---
   Widget _buildSudokuTab() {
-    return RefreshIndicator( // [MỚI] Vuốt xuống để refresh
+    return RefreshIndicator(
       onRefresh: _refreshData,
       child: FutureBuilder<List<dynamic>>(
         future: _apiService.getAllSudokuMatches(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return ListView(children: [Center(child: Padding(padding: EdgeInsets.all(20), child: Text("Chưa có ván Sudoku nào.")))]);
-          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) return ListView(children: [Center(child: Padding(padding: EdgeInsets.all(20), child: Text("Chưa có ván Sudoku nào.")))]);
 
           final matches = snapshot.data!;
           return ListView.builder(
-            physics: AlwaysScrollableScrollPhysics(), // Đảm bảo luôn cuộn được để refresh
+            physics: AlwaysScrollableScrollPhysics(),
             itemCount: matches.length,
             itemBuilder: (context, index) {
               final match = matches[index];
               return Card(
                 margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 child: ListTile(
-                  leading: Icon(Icons.grid_on, color: Colors.orange, size: 30),
+                  leading: Icon(Icons.grid_on, color: Colors.orange),
                   title: Text(match['userEmail'] ?? "Unknown"),
                   subtitle: Text("Điểm: ${match['score']} | Cấp độ: ${match['difficulty']}\n${match['date']}"),
                   isThreeLine: true,
                   trailing: IconButton(
                     icon: Icon(Icons.delete_outline, color: Colors.redAccent),
-                    onPressed: () => _confirmDelete(
-                      "Xóa ván game?",
-                      "Bạn muốn xóa ván Sudoku này?",
-                          () async {
-                        bool success = await _apiService.deleteSudokuMatch(match['id']);
-                        if (success) _refreshData();
-                      },
-                    ),
+                    onPressed: () => _confirmDelete("Xóa ván game?", "Bạn muốn xóa ván này?", () async {
+                      bool success = await _apiService.deleteSudokuMatch(match['id']);
+                      if (success) _refreshData();
+                    }),
                   ),
                 ),
               );
@@ -324,17 +282,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // --- TAB 3: QUẢN LÝ RUBIK ---
+  // --- TAB 3: RUBIK ---
   Widget _buildRubikTab() {
-    return RefreshIndicator( // [MỚI] Vuốt xuống để refresh
+    return RefreshIndicator(
       onRefresh: _refreshData,
       child: FutureBuilder<List<dynamic>>(
         future: _apiService.getAllRubikGames(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return ListView(children: [Center(child: Padding(padding: EdgeInsets.all(20), child: Text("Chưa có ván Rubik nào.")))]);
-          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) return ListView(children: [Center(child: Padding(padding: EdgeInsets.all(20), child: Text("Chưa có ván Rubik nào.")))]);
 
           final games = snapshot.data!;
           return ListView.builder(
@@ -345,17 +301,82 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               return Card(
                 margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 child: ListTile(
-                  leading: Icon(Icons.casino, color: Colors.purple, size: 30),
+                  leading: Icon(Icons.casino, color: Colors.purple),
                   title: Text(game['userEmail'] ?? "Unknown"),
                   subtitle: Text("Thời gian: ${game['time']}s | ${game['mode']}\n${game['date']}"),
                   isThreeLine: true,
                   trailing: IconButton(
                     icon: Icon(Icons.delete_outline, color: Colors.redAccent),
+                    onPressed: () => _confirmDelete("Xóa ván game?", "Bạn muốn xóa ván này?", () async {
+                      bool success = await _apiService.deleteRubikGame(game['id']);
+                      if (success) _refreshData();
+                    }),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  // --- TAB 4: CARO (MỚI) ---
+  Widget _buildCaroTab() {
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: FutureBuilder<List<dynamic>>(
+        future: _apiService.getAllCaroMatches(),
+        builder: (context, snapshot) {
+          // 1. Loading
+          if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
+
+          // 2. Empty
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return ListView(children: [Center(child: Padding(padding: EdgeInsets.all(20), child: Text("Chưa có ván Caro nào.")))]);
+          }
+
+          // 3. Data List
+          final matches = snapshot.data!;
+          return ListView.builder(
+            physics: AlwaysScrollableScrollPhysics(),
+            itemCount: matches.length,
+            itemBuilder: (context, index) {
+              final match = matches[index];
+
+              // Parse dữ liệu an toàn (tránh lỗi null)
+              String winner = match['winner'] ?? match['result'] ?? 'Unknown';
+              // Nếu result là số (1/-1) thì convert sang chữ cho đẹp (Tùy API trả về gì)
+              if (winner == '1') winner = "Thắng";
+              else if (winner == '-1') winner = "Thua";
+              else if (winner == '0') winner = "Hòa";
+
+              return Card(
+                margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                child: ListTile(
+                  // Icon Caro màu xanh lá
+                  leading: Icon(Icons.grid_4x4, color: Colors.green, size: 30),
+
+                  title: Text(match['userEmail'] ?? "Unknown User", style: TextStyle(fontWeight: FontWeight.bold)),
+
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Kết quả: $winner"),
+                      Text("Số nước: ${match['moves']} | Thời gian: ${match['duration']}s"),
+                      Text("Ngày: ${match['date'] ?? match['playedAt'] ?? ''}", style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    ],
+                  ),
+
+                  isThreeLine: true,
+
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete_outline, color: Colors.redAccent),
                     onPressed: () => _confirmDelete(
-                      "Xóa ván game?",
-                      "Bạn muốn xóa ván Rubik này?",
+                      "Xóa ván Caro?",
+                      "Hành động này không thể hoàn tác!",
                           () async {
-                        bool success = await _apiService.deleteRubikGame(game['id']);
+                        bool success = await _apiService.deleteCaroMatch(match['id']);
                         if (success) _refreshData();
                       },
                     ),

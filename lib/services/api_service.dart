@@ -292,4 +292,32 @@ class ApiService {
     }
     return [];
   }
+  // --- THÊM VÀO ApiService ---
+
+  // 13. [ADMIN] Lấy toàn bộ lịch sử Caro của tất cả người chơi
+  Future<List<dynamic>> getAllCaroMatches() async {
+    try {
+      final headers = await _getAuthHeaders();
+      // Giả sử API Admin bên C# là: GET /api/Admin/caro-matches
+      final response = await http.get(Uri.parse('$baseUrl/Admin/caro-matches'), headers: headers);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (e) {
+      print("Lỗi get all caro: $e");
+    }
+    return [];
+  }
+
+  // 14. [ADMIN] Xóa ván Caro
+  Future<bool> deleteCaroMatch(int id) async {
+    try {
+      final headers = await _getAuthHeaders();
+      // Giả sử API Admin bên C# là: DELETE /api/Admin/caro-match/{id}
+      final response = await http.delete(Uri.parse('$baseUrl/Admin/caro-match/$id'), headers: headers);
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
 }
