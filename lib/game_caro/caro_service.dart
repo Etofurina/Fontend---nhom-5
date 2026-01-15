@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../constants.dart';
+
 // Class DTO để chuyển dữ liệu từ màn hình Game sang Service
 class MatchLog {
   final String date;
@@ -29,8 +31,8 @@ class MatchLog {
 
 class CaroService {
   // URL API Backend của anh
-  static const String baseUrl = "https://rightpurpletower2.conveyor.cloud/api";
 
+  static const String baseUrl = AppConstants.apiBaseUrl;
   // Helper: Lấy Header có chứa Token đăng nhập
   Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
